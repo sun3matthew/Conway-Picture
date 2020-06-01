@@ -3,9 +3,35 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.io.*;
 import java.awt.Color;
-//as counter goes up, detail goes up
-//as vision go up, delatil also gose up
-//
+
+/*
+
+Conway's Game of Life that "draws" an image
+
+java ConwayPicture filename
+
+The images (in .jpg format) are added into a folder in the Input_Images,
+the two images should be named One.jpg and Two.jpg, the "Two" image acts
+as the world and the "One" image acts as the sample population that will
+be selected to populate the world.
+
+Random pixels from the the "One" image are selected and put into the world.
+For the first 90 frames, the cells will not draw on the final image, each
+new cell will slightly mutate towards the current world tile color it is
+on when it is "born". After the first 90 frames, the cells will draw to
+the final image.
+
+Toggles q = draw || w = newGen || e = seeFinal || a = bg || s = cell
+
+Exporting space = export
+
+By: Matthew Sun
+Since: May 31 2020
+*/
+
+/*
+Main class to setup GUI
+*/
 public class ConwayPicture
 {
  JFrame frame;
@@ -31,6 +57,9 @@ public class ConwayPicture
  }
 }
 
+/*
+Class the runs the program
+*/
 class AiProgram extends JPanel implements KeyListener{
 
 Pixel[][] currentImage;
@@ -54,6 +83,9 @@ final int numberOfGens = 15;
 final int survival = 100;
 final int vision = 3;
 final int stopAt = 1500;
+/*
+Constructor which reads/setup files and instance varibles.
+*/
  public AiProgram(String folderName) {
    String dir = System.getProperty("user.dir");
    //System.out.println(dir.substring(0, dir.length()-7));
@@ -97,6 +129,9 @@ final int stopAt = 1500;
   balltimer.start();
  }
 
+ /*
+ This method populates the world with pixels from image One
+ */
  public void startGen()
  {
    genStartCounter = 0;
@@ -104,37 +139,29 @@ final int stopAt = 1500;
    {
      for(int col = 0; col < currentAlive[0].length; col++)
      {
-       //if(currentImage[row][col].grayscale() > 128)
          if(randomWithRange(0, 1) != 0)
           currentAlive[row][col] = new Pixel(colorImage[randomWithRange(0, colorImage.length-1)][randomWithRange(0, colorImage[0].length-1)]);
      }
    }
  }
-public int randomWithRange(int min, int max)
-{
-   int range = (max - min) + 1;
-   return (int)(Math.random() * range) + min;
-}
+
+ /*
+ Helper method
+ */
+  public int randomWithRange(int min, int max)
+  {
+     int range = (max - min) + 1;
+     return (int)(Math.random() * range) + min;
+  }
+
+  /*
+  The "Update Function"
+  */
  class BallMover implements ActionListener {
   public void actionPerformed(ActionEvent e) {
     counter++;
     genStartCounter++;
     System.out.println("Generation: " + counter);
-    /*
-    if(counter >= 300)// || genCounter >= stopAt
-    {
-      for(int row = 0; row < currentAlive.length; row++)
-        for(int col = 0; col < currentAlive[0].length; col++)
-        {
-          if(currentAlive[row][col] != null)
-            exportImage[row][col] = currentAlive[row][col];
-          if(exportImage[row][col] == null)
-            exportImage[row][col] = new Pixel();
-        }
-      Image newPicture = new Image(exportImage);
-      newPicture.exportImage(exportPath+"OutputImg");
-      System.exit(0);
-    }*/
     for(int row = 0; row < currentAlive.length; row++)
     {
       for(int col = 0; col < currentAlive[0].length; col++)
@@ -194,6 +221,10 @@ public int randomWithRange(int min, int max)
     repaint();
     }
   }
+
+  /*
+  Counts the empty pixels
+  */
   public int count()
   {
     int counter = 0;
@@ -203,66 +234,74 @@ public int randomWithRange(int min, int max)
           counter++;
     return counter;
   }
- public Pixel geiWoBaby(Pixel parent1, Pixel parent2, Pixel parent3, Pixel imgColor, int mutationAmount)
- {
-   //mutationAmount = (int)Math.pow(2,mutationAmount);
-   int avgR = (parent1.r + parent2.r + parent3.r)/3;
-   int avgG = (parent1.g + parent2.g + parent3.g)/3;
-   int avgB = (parent1.b + parent2.b + parent3.b)/3;
-   avgR += (imgColor.r - avgR)/randomWithRange(mutationAmount*5,mutationAmount*6);
-   avgG += (imgColor.g - avgG)/randomWithRange(mutationAmount*5,mutationAmount*6);
-   avgB += (imgColor.b - avgB)/randomWithRange(mutationAmount*5,mutationAmount*6);//+randomWithRange(-1*mutationAmount/2,mutationAmount/2)
-   return new Pixel(avgR, avgG, avgB);
- }
- public void paintComponent(Graphics g) {
-   if(toggleExportImg)
+
+  /*
+  Returns a slightly mutated child
+  */
+   public Pixel geiWoBaby(Pixel parent1, Pixel parent2, Pixel parent3, Pixel imgColor, int mutationAmount)
    {
-     super.paintComponent(g);
-     setBackground(Color.BLACK);
-     for(int row = 0; row < currentAlive.length; row++)
-       for(int col = 0; col < currentAlive[0].length; col++)
-       {
-         g.setColor(Color.BLACK);
-         if(currentAlive[row][col] != null)
-         {
-           g.setColor(currentAlive[row][col].getColor());
-         }else if(exportImage[row][col] != null)
-         {
-           g.setColor(exportImage[row][col].getColor());
-         }
-         g.drawLine(col, row, col, row);
-       }
-   }else if(toggleDraw)
-   {
-     super.paintComponent(g);
-     setBackground(Color.BLACK);
-     for(int row = 0; row < currentAlive.length; row++)
-       for(int col = 0; col < currentAlive[0].length; col++)
-         if(currentAlive[row][col] != null || finalImg[row][col] != null)
+     int avgR = (parent1.r + parent2.r + parent3.r)/3;
+     int avgG = (parent1.g + parent2.g + parent3.g)/3;
+     int avgB = (parent1.b + parent2.b + parent3.b)/3;
+     avgR += (imgColor.r - avgR)/randomWithRange(mutationAmount*5,mutationAmount*6);
+     avgG += (imgColor.g - avgG)/randomWithRange(mutationAmount*5,mutationAmount*6);
+     avgB += (imgColor.b - avgB)/randomWithRange(mutationAmount*5,mutationAmount*6);//+randomWithRange(-1*mutationAmount/2,mutationAmount/2)
+     return new Pixel(avgR, avgG, avgB);
+   }
+
+   /*
+   Draws the pixels on screen
+   */
+   public void paintComponent(Graphics g) {
+     if(toggleExportImg)
+     {
+       super.paintComponent(g);
+       setBackground(Color.BLACK);
+       for(int row = 0; row < currentAlive.length; row++)
+         for(int col = 0; col < currentAlive[0].length; col++)
          {
            g.setColor(Color.BLACK);
-           if(currentAlive[row][col] != null && toggleCells)
+           if(currentAlive[row][col] != null)
            {
              g.setColor(currentAlive[row][col].getColor());
-           }else if(toggleBg && finalImg[row][col] != null)
+           }else if(exportImage[row][col] != null)
            {
-             g.setColor(finalImg[row][col].getColor());
+             g.setColor(exportImage[row][col].getColor());
            }
            g.drawLine(col, row, col, row);
          }
+     }else if(toggleDraw)
+     {
+       super.paintComponent(g);
+       setBackground(Color.BLACK);
+       for(int row = 0; row < currentAlive.length; row++)
+         for(int col = 0; col < currentAlive[0].length; col++)
+           if(currentAlive[row][col] != null || finalImg[row][col] != null)
+           {
+             g.setColor(Color.BLACK);
+             if(currentAlive[row][col] != null && toggleCells)
+             {
+               g.setColor(currentAlive[row][col].getColor());
+             }else if(toggleBg && finalImg[row][col] != null)
+             {
+               g.setColor(finalImg[row][col].getColor());
+             }
+             g.drawLine(col, row, col, row);
+           }
+     }
+   } // end paintComponent`
+
+   public Pixel[][] cloneArray(Pixel[][] cloneThis)
+   {
+     Pixel[][] newArray = new Pixel[cloneThis.length][cloneThis[0].length];
+     for (int row = 0; row < newArray.length; row++)
+      for (int col = 0; col < newArray[0].length; col++)
+       newArray[row][col] = cloneThis[row][col];
+     return newArray;
    }
- } // end paintComponent
- public Pixel[][] cloneArray(Pixel[][] cloneThis)
- {
-   Pixel[][] newArray = new Pixel[cloneThis.length][cloneThis[0].length];
-   for (int row = 0; row < newArray.length; row++)
-    for (int col = 0; col < newArray[0].length; col++)
-     newArray[row][col] = cloneThis[row][col];
-   return newArray;
- }
+   
     public void keyReleased(KeyEvent e) {}
    public void keyTyped(KeyEvent e) {
-     //System.out.println(e.getKeyChar());
      if(e.getKeyChar() == ' ')
      {
        for(int row = 0; row < currentAlive.length; row++)
